@@ -7,6 +7,7 @@
         , peekImpl/3
         , isEmpty/1
         , reverse/1
+        , toList/1
         , appendImpl/2
         , mapImpl/2
         , foldrImpl/3
@@ -39,6 +40,8 @@ peekImpl(Just, Nothing, Queue) ->
 isEmpty(Queue) -> queue:is_empty(Queue).
 
 reverse(Queue) -> queue:reverse(Queue).
+
+toList(Queue) -> queue:to_list(Queue).
 
 appendImpl(Queue1, Queue2) -> queue:join(Queue1, Queue2).
 

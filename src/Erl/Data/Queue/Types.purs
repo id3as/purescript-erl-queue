@@ -8,6 +8,7 @@ module Erl.Data.Queue.Types
        , peek
        , isEmpty
        , reverse
+       , toList
        ) where
 
 import Prelude
@@ -37,6 +38,7 @@ import Data.TraversableWithIndex (class TraversableWithIndex, traverseWithIndex)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, class Unfoldable1)
 import Data.Witherable (class Witherable, wiltDefault, witherDefault)
+import Erl.Data.List (List)
 
 foreign import data Queue :: Type -> Type
 
@@ -59,6 +61,8 @@ foreign import peekImpl :: forall a. (a -> Maybe a) -> Maybe a -> Queue a -> May
 foreign import isEmpty :: forall a. Queue a -> Boolean
 
 foreign import reverse :: forall a. Queue a -> Queue a
+
+foreign import toList :: forall a. Queue a -> List a
 
 instance showQueue :: Show a => Show (Queue a) where
   show queue | isEmpty queue = "nil"
