@@ -1,0 +1,5 @@
+.psc-ide-port
+output/
+.spago/
+*.dump
+
