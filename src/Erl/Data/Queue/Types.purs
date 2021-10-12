@@ -142,13 +142,13 @@ instance traversableQueue :: Traversable Queue where
       Just { item, queue: newQueue } -> put <$> item <*> sequence newQueue
 
 instance traversableWithIndexQueue :: TraversableWithIndex Int Queue where
-  traverseWithIndex f queue =
-    traverseWithIndexImpl f queue 0
-      where
-          traverseWithIndexImpl f queue i =
-            case get queue of
-              Nothing -> pure empty
-              Just { item, queue: newQueue } -> put <$> f i item <*> traverseWithIndexImpl f newQueue (i+1)
+  traverseWithIndex f initialQueue =
+    traverseWithIndexImpl initialQueue 0
+    where
+    traverseWithIndexImpl queue i =
+      case get queue of
+        Nothing -> pure empty
+        Just { item, queue: newQueue } -> put <$> f i item <*> traverseWithIndexImpl newQueue (i+1)
 
 instance foldableWithIndexQueue :: FoldableWithIndex Int Queue where
   foldrWithIndex f z lst = foldr (\(Tuple i x) y -> f i x y) z $ mapWithIndex Tuple lst
