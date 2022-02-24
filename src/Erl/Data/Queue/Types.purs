@@ -1,15 +1,19 @@
 module Erl.Data.Queue.Types
-       ( Queue
-       , NonEmptyQueue(..)
-       , empty
-       , singleton
-       , put
-       , get
-       , peek
-       , isEmpty
-       , reverse
-       , toList
-       ) where
+  ( NonEmptyQueue(..)
+  , Queue
+  , drop
+  , empty
+  , get
+  , isEmpty
+  , length
+  , peek
+  , put
+  , putBounded
+  , reverse
+  , singleton
+  , toList
+  )
+  where
 
 import Prelude
 
@@ -44,9 +48,21 @@ foreign import data Queue :: Type -> Type
 
 foreign import empty :: forall a. Queue a
 
+foreign import length :: forall a. Queue a -> Int
+
 foreign import singleton :: forall a. a -> Queue a
 
 foreign import put :: forall a. a -> Queue a -> Queue a
+
+
+-- | Trim a Queue to N elements when inserting a new one
+putBounded :: forall a. Int -> a -> Queue a -> Queue a
+putBounded n newElement q = trim (put newElement q)
+  where
+    trim queue =
+      if length queue > n
+      then trim (drop queue)
+      else queue
 
 get :: forall a. Queue a -> Maybe { item :: a, queue :: Queue a }
 get = getImpl Just Nothing

@@ -1,5 +1,6 @@
 -module(erl_data_queue_types@foreign).
 -export([ empty/0
+        , length/1
         , singleton/1
         , put/2
         , getImpl/3
@@ -17,6 +18,8 @@
 
 empty() -> queue:new().
 
+length(Queue) -> queue:len(Queue).
+
 singleton(X) -> queue:in(X, queue:new()).
 
 put(X, Queue) -> queue:in(X, Queue).
@@ -29,7 +32,12 @@ getImpl(Just, Nothing, Queue) ->
       Nothing
   end.
 
-drop(Queue) -> queue:drop(Queue).
+drop(Queue) ->
+  try queue:drop(Queue) of
+    NewQueue -> NewQueue
+  catch
+    error:empty -> Queue
+  end.
 
 peekImpl(Just, Nothing, Queue) ->
   case queue:peek(Queue) of
