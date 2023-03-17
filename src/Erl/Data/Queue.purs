@@ -3,4 +3,4 @@ module Erl.Data.Queue
        )
        where
 
-import Erl.Data.Queue.Types (Queue, NonEmptyQueue(..), empty, singleton, put, get, peek, toList, isEmpty, reverse)
+import Erl.Data.Queue.Types (Queue, NonEmptyQueue(..), empty, singleton, put, get, peek, toList, isEmpty, reverse, drop, length, putBounded)
