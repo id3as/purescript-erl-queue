@@ -58,7 +58,7 @@ appendImpl(Queue1, Queue2) -> queue:join(Queue1, Queue2).
 
 mapImpl(Fn, Queue) -> queue:from_list(lists:map(Fn, queue:to_list(Queue))).
 
-foldlImpl(F, I, Queue) -> lists:foldl(fun (X, A) -> (F(A))(X) end, I, queue:to_list(Queue)).
+foldlImpl(F, I, Queue) -> queue:fold(fun (X, A) -> (F(A))(X) end, I, Queue).
 foldrImpl(F, I, Queue) -> lists:foldr(fun (X, A) -> (F(X))(A) end, I, queue:to_list(Queue)).
 
 filter(F, Queue) -> queue:filter(F, Queue).

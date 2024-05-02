@@ -132,9 +132,9 @@ instance foldableQueue :: Foldable Queue where
 
 foreign import mapImpl :: forall a b. (a -> b) -> Queue a -> Queue b
 
-foreign import foldrImpl :: forall a b. (a -> b -> b) -> b -> Queue a -> b
-
 foreign import foldlImpl :: forall a b. (b -> a -> b) -> b -> Queue a -> b
+
+foreign import foldrImpl :: forall a b. (a -> b -> b) -> b -> Queue a -> b
 
 instance unfoldable1Queue :: Unfoldable1 Queue where
   unfoldr1 f b = go b empty
@@ -265,9 +265,6 @@ newtype NonEmptyQueue a = NonEmptyQueue (NonEmpty Queue a)
 
 toQueue :: NonEmptyQueue ~> Queue
 toQueue (NonEmptyQueue (x :| xs)) = put x xs
-
-nelPut :: forall a. a -> NonEmptyQueue a -> NonEmptyQueue a
-nelPut a (NonEmptyQueue (b :| bs)) = NonEmptyQueue (a :| put b bs)
 
 nelPutFront :: forall a. a -> NonEmptyQueue a -> NonEmptyQueue a
 nelPutFront a (NonEmptyQueue (b :| bs)) = NonEmptyQueue (b :| putFront a bs)
