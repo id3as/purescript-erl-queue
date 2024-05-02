@@ -1,0 +1,32 @@
+package:
+  name: erl-queue
+  dependencies:
+    - console
+    - effect
+    - prelude
+    - unsafe-coerce
+    - control
+    - either
+    - erl-lists
+    - filterable
+    - foldable-traversable
+    - lists
+    - maybe
+    - newtype
+    - nonempty
+    - prelude
+    - tuples
+    - unfoldable
+
+    - assert # test
+  test:
+    main: Test.Main
+    dependencies:
+    - assert
+workspace:
+  backend:
+    cmd: purerl
+  package_set:
+    url: https://raw.githubusercontent.com/purerl/package-sets/erl-0.15.3-20220629/packages.json
+    hash: sha256-kLmZv2u5dWVUUaQEwK0b3T1Ghce5a/hG0zlizaYfcXs=
+  extra_packages: {}
