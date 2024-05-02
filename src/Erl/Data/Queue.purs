@@ -1,6 +1,14 @@
 module Erl.Data.Queue
-       ( module Erl.Data.Queue.Types
-       )
-       where
+  ( fromFoldable
+  , module ReExport
+  )
+  where
 
-import Erl.Data.Queue.Types (Queue, NonEmptyQueue(..), empty, singleton, put, get, peek, toList, isEmpty, reverse, drop, length, putBounded)
+import Prelude
+
+import Data.Foldable (class Foldable, foldl)
+import Erl.Data.Queue.Types (Queue, NonEmptyQueue(..), empty, singleton, put, putFront, get, peek, toList, isEmpty, reverse, drop, length, putBounded) as ReExport
+import Erl.Data.Queue.Types as Queue
+
+fromFoldable :: forall f a. Foldable f => f a -> Queue.Queue a
+fromFoldable = foldl (flip Queue.put) Queue.empty

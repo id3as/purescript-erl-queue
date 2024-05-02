@@ -3,6 +3,7 @@
         , length/1
         , singleton/1
         , put/2
+        , putFront/2
         , getImpl/3
         , drop/1
         , peekImpl/3
@@ -23,6 +24,8 @@ length(Queue) -> queue:len(Queue).
 singleton(X) -> queue:in(X, queue:new()).
 
 put(X, Queue) -> queue:in(X, Queue).
+
+putFront(X, Queue) -> queue:in_r(X, Queue).
 
 getImpl(Just, Nothing, Queue) ->
   case queue:out(Queue) of
@@ -55,7 +58,7 @@ appendImpl(Queue1, Queue2) -> queue:join(Queue1, Queue2).
 
 mapImpl(Fn, Queue) -> queue:from_list(lists:map(Fn, queue:to_list(Queue))).
 
-foldlImpl(F, I, Queue) -> queue:from_list(lists:foldl(fun (X, A) -> (F(A))(X) end, I, queue:to_list(Queue))).
-foldrImpl(F, I, Queue) -> queue:from_list(lists:foldr(fun (X, A) -> (F(X))(A) end, I, queue:to_list(Queue))).
+foldlImpl(F, I, Queue) -> lists:foldl(fun (X, A) -> (F(A))(X) end, I, queue:to_list(Queue)).
+foldrImpl(F, I, Queue) -> lists:foldr(fun (X, A) -> (F(X))(A) end, I, queue:to_list(Queue)).
 
 filter(F, Queue) -> queue:filter(F, Queue).

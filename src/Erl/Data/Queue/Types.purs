@@ -9,6 +9,7 @@ module Erl.Data.Queue.Types
   , peek
   , put
   , putBounded
+  , putFront
   , reverse
   , singleton
   , toList
@@ -53,6 +54,8 @@ foreign import length :: forall a. Queue a -> Int
 foreign import singleton :: forall a. a -> Queue a
 
 foreign import put :: forall a. a -> Queue a -> Queue a
+
+foreign import putFront :: forall a. a -> Queue a -> Queue a
 
 
 -- | Trim a Queue to N elements when inserting a new one
@@ -151,11 +154,11 @@ instance traversableQueue :: Traversable Queue where
   traverse f queue =
     case get queue of
       Nothing -> pure empty
-      Just { item, queue: newQueue } -> put <$> f item <*> traverse f newQueue
+      Just { item, queue: newQueue } -> putFront <$> f item <*> traverse f newQueue
   sequence queue =
     case get queue of
       Nothing -> pure empty
-      Just { item, queue: newQueue } -> put <$> item <*> sequence newQueue
+      Just { item, queue: newQueue } -> putFront <$> item <*> sequence newQueue
 
 instance traversableWithIndexQueue :: TraversableWithIndex Int Queue where
   traverseWithIndex f initialQueue =
@@ -164,7 +167,7 @@ instance traversableWithIndexQueue :: TraversableWithIndex Int Queue where
     traverseWithIndexImpl queue i =
       case get queue of
         Nothing -> pure empty
-        Just { item, queue: newQueue } -> put <$> f i item <*> traverseWithIndexImpl newQueue (i+1)
+        Just { item, queue: newQueue } -> putFront <$> f i item <*> traverseWithIndexImpl newQueue (i+1)
 
 instance foldableWithIndexQueue :: FoldableWithIndex Int Queue where
   foldrWithIndex f z lst = foldr (\(Tuple i x) y -> f i x y) z $ mapWithIndex Tuple lst
@@ -266,6 +269,9 @@ toQueue (NonEmptyQueue (x :| xs)) = put x xs
 nelPut :: forall a. a -> NonEmptyQueue a -> NonEmptyQueue a
 nelPut a (NonEmptyQueue (b :| bs)) = NonEmptyQueue (a :| put b bs)
 
+nelPutFront :: forall a. a -> NonEmptyQueue a -> NonEmptyQueue a
+nelPutFront a (NonEmptyQueue (b :| bs)) = NonEmptyQueue (b :| putFront a bs)
+
 derive instance newtypeNonEmptyQueue :: Newtype (NonEmptyQueue a) _
 
 derive newtype instance eqNonEmptyQueue :: Eq a => Eq (NonEmptyQueue a)
@@ -328,6 +334,6 @@ instance traversableWithIndexNonEmptyQueue :: TraversableWithIndex Int NonEmptyQ
 
 instance traversable1NonEmptyQueue :: Traversable1 NonEmptyQueue where
   traverse1 f (NonEmptyQueue (a :| as)) =
-    foldl (\acc -> lift2 (flip nelPut) acc <<< f) (pure <$> f a) as
-      <#> case _ of NonEmptyQueue (x :| xs) → foldl (flip nelPut) (pure x) xs
+    foldl (\acc -> lift2 (flip nelPutFront) acc <<< f) (pure <$> f a) as
+      <#> case _ of NonEmptyQueue (x :| xs) → foldl (flip nelPutFront) (pure x) xs
   sequence1 = traverse1 identity
