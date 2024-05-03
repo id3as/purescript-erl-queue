@@ -3,10 +3,7 @@ workspace:
     erl-queue:
       path: ./
       dependencies:
-        - assert
-        - console
         - control
-        - effect
         - either
         - erl-lists
         - filterable
@@ -18,9 +15,10 @@ workspace:
         - prelude
         - tuples
         - unfoldable
-        - unsafe-coerce
       test_dependencies:
+        - arrays
         - assert
+        - effect
       build_plan:
         - arrays
         - assert
