@@ -1,20 +1,22 @@
 module Erl.Data.Queue.Types
   ( NonEmptyQueue(..)
   , Queue
-  , drop
   , empty
   , get
+  , getBack
+  , drop
+  , dropBack
   , isEmpty
   , length
   , peek
+  , peekBack
   , put
   , putBounded
   , putFront
   , reverse
   , singleton
   , toList
-  )
-  where
+  ) where
 
 import Prelude
 
@@ -57,25 +59,37 @@ foreign import put :: forall a. a -> Queue a -> Queue a
 
 foreign import putFront :: forall a. a -> Queue a -> Queue a
 
-
 -- | Trim a Queue to N elements when inserting a new one
 putBounded :: forall a. Int -> a -> Queue a -> Queue a
 putBounded n newElement q = trim (put newElement q)
   where
-    trim queue =
-      if length queue > n
-      then trim (drop queue)
-      else queue
+  trim queue =
+    if length queue > n then trim (drop queue)
+    else queue
 
 get :: forall a. Queue a -> Maybe { item :: a, queue :: Queue a }
 get = getImpl Just Nothing
+
 foreign import getImpl :: forall a. (a -> Maybe a) -> Maybe a -> Queue a -> Maybe { item :: a, queue :: Queue a }
+
+getBack :: forall a. Queue a -> Maybe { item :: a, queue :: Queue a }
+getBack = getBackImpl Just Nothing
+
+foreign import getBackImpl :: forall a. (a -> Maybe a) -> Maybe a -> Queue a -> Maybe { item :: a, queue :: Queue a }
 
 foreign import drop :: forall a. Queue a -> Queue a
 
+foreign import dropBack :: forall a. Queue a -> Queue a
+
 peek :: forall a. Queue a -> Maybe a
 peek = peekImpl Just Nothing
+
 foreign import peekImpl :: forall a. (a -> Maybe a) -> Maybe a -> Queue a -> Maybe a
+
+peekBack :: forall a. Queue a -> Maybe a
+peekBack = peekBackImpl Just Nothing
+
+foreign import peekBackImpl :: forall a. (a -> Maybe a) -> Maybe a -> Queue a -> Maybe a
 
 foreign import isEmpty :: forall a. Queue a -> Boolean
 
@@ -93,11 +107,11 @@ instance eqQueue :: Eq a => Eq (Queue a) where
 instance eq1Queue :: Eq1 Queue where
   eq1 queueLhs queueRhs = go queueLhs queueRhs
     where
-      go queueLhs' queueRhs' =
-        case get queueLhs', get queueRhs' of
-          Nothing, Nothing -> true
-          Just { item: x, queue: queueLhs'' }, Just { item: y, queue: queueRhs'' } | x == y -> go queueLhs'' queueRhs''
-          _, _ -> false
+    go queueLhs' queueRhs' =
+      case get queueLhs', get queueRhs' of
+        Nothing, Nothing -> true
+        Just { item: x, queue: queueLhs'' }, Just { item: y, queue: queueRhs'' } | x == y -> go queueLhs'' queueRhs''
+        _, _ -> false
 
 instance ordQueue :: Ord a => Ord (Queue a) where
   compare = compare1
@@ -105,14 +119,14 @@ instance ordQueue :: Ord a => Ord (Queue a) where
 -- Adapted from https://hackage.haskell.org/package/base-4.4.1.0/docs/src/GHC-Classes.html
 instance ord1Queue :: Ord1 Queue where
   compare1 queueLhs queueRhs =
-      case get queueLhs, get queueRhs of
-         Nothing, Nothing -> EQ
-         Nothing, _       -> LT
-         _, Nothing       -> GT
-         Just { item: x, queue: queueLhs'' }, Just { item: y, queue: queueRhs'' } ->
-           case compare x y of
-             EQ -> compare1 queueLhs'' queueRhs''
-             other -> other
+    case get queueLhs, get queueRhs of
+      Nothing, Nothing -> EQ
+      Nothing, _ -> LT
+      _, Nothing -> GT
+      Just { item: x, queue: queueLhs'' }, Just { item: y, queue: queueRhs'' } ->
+        case compare x y of
+          EQ -> compare1 queueLhs'' queueRhs''
+          other -> other
 
 instance semigroupQueue :: Semigroup (Queue a) where
   append = appendImpl
@@ -139,16 +153,16 @@ foreign import foldrImpl :: forall a b. (a -> b -> b) -> b -> Queue a -> b
 instance unfoldable1Queue :: Unfoldable1 Queue where
   unfoldr1 f b = go b empty
     where
-      go source memo = case f source of
-        Tuple one Nothing -> foldl (flip put) empty (put one memo)
-        Tuple one (Just rest) -> go rest (put one memo)
+    go source memo = case f source of
+      Tuple one Nothing -> foldl (flip put) empty (put one memo)
+      Tuple one (Just rest) -> go rest (put one memo)
 
 instance unfoldableQueue :: Unfoldable Queue where
   unfoldr f b = go b empty
     where
-      go source memo = case f source of
-        Nothing -> foldl (flip put) empty memo
-        Just (Tuple one rest) -> go rest (put one memo)
+    go source memo = case f source of
+      Nothing -> foldl (flip put) empty memo
+      Just (Tuple one rest) -> go rest (put one memo)
 
 instance traversableQueue :: Traversable Queue where
   traverse f queue =
@@ -167,7 +181,7 @@ instance traversableWithIndexQueue :: TraversableWithIndex Int Queue where
     traverseWithIndexImpl queue i =
       case get queue of
         Nothing -> pure empty
-        Just { item, queue: newQueue } -> putFront <$> f i item <*> traverseWithIndexImpl newQueue (i+1)
+        Just { item, queue: newQueue } -> putFront <$> f i item <*> traverseWithIndexImpl newQueue (i + 1)
 
 instance foldableWithIndexQueue :: FoldableWithIndex Int Queue where
   foldrWithIndex f z lst = foldr (\(Tuple i x) y -> f i x y) z $ mapWithIndex Tuple lst
@@ -179,7 +193,7 @@ instance functorWithIndexQueue :: FunctorWithIndex Int Queue where
     where
     go n l acc = case get l of
       Nothing -> acc
-      Just { item: x, queue: xs } -> go (n+1) xs $ put (f n x) acc
+      Just { item: x, queue: xs } -> go (n + 1) xs $ put (f n x) acc
 
 instance applyQueue :: Apply Queue where
   apply queue xs =
@@ -233,19 +247,18 @@ instance compactableQueue :: Compactable Queue where
 instance filterableQueue :: Filterable Queue where
   partitionMap :: forall a l r. (a -> Either l r) -> Queue a -> { left :: Queue l, right :: Queue r }
   partitionMap p xs = foldr select { left: empty, right: empty } xs
-      where
-        select x { left, right } = case p x of
-                                     Left l -> { left: put l left, right }
-                                     Right r -> { left, right: put r right }
+    where
+    select x { left, right } = case p x of
+      Left l -> { left: put l left, right }
+      Right r -> { left, right: put r right }
 
   partition :: forall a. (a -> Boolean) -> Queue a -> { no :: Queue a, yes :: Queue a }
   partition p xs = foldr select { no: empty, yes: empty } xs
-      where
-        -- select :: (a -> Boolean) -> a -> { no :: Queue a, yes :: Queue a } -> { no :: Queue a, yes :: Queue a }
-        select x { no, yes } = if p x
-                                 then { no, yes: put x yes }
-                                 else { no: put x no, yes }
-
+    where
+    -- select :: (a -> Boolean) -> a -> { no :: Queue a, yes :: Queue a } -> { no :: Queue a, yes :: Queue a }
+    select x { no, yes } =
+      if p x then { no, yes: put x yes }
+      else { no: put x no, yes }
 
   filterMap :: forall a b. (a -> Maybe b) -> Queue a -> Queue b
   filterMap = mapMaybe

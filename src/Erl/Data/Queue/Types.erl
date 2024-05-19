@@ -5,8 +5,11 @@
         , put/2
         , putFront/2
         , getImpl/3
+        , getBackImpl/3
         , drop/1
+        , dropBack/1
         , peekImpl/3
+        , peekBackImpl/3
         , isEmpty/1
         , reverse/1
         , toList/1
@@ -35,6 +38,14 @@ getImpl(Just, Nothing, Queue) ->
       Nothing
   end.
 
+getBackImpl(Just, Nothing, Queue) ->
+  case queue:out_r(Queue) of
+    {{value, Item}, Q2} ->
+      Just(#{item => Item, queue => Q2});
+    {empty, _} ->
+      Nothing
+  end.
+  
 drop(Queue) ->
   try queue:drop(Queue) of
     NewQueue -> NewQueue
@@ -42,8 +53,21 @@ drop(Queue) ->
     error:empty -> Queue
   end.
 
+dropBack(Queue) ->
+  try queue:drop_r(Queue) of
+    NewQueue -> NewQueue
+  catch
+    error:empty -> Queue
+  end.
+
 peekImpl(Just, Nothing, Queue) ->
   case queue:peek(Queue) of
+    empty -> Nothing;
+    {value, Item} -> Just(Item)
+  end.
+  
+peekBackImpl(Just, Nothing, Queue) ->
+  case queue:peek_r(Queue) of
     empty -> Nothing;
     {value, Item} -> Just(Item)
   end.
